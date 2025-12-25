@@ -338,6 +338,83 @@
             color: #856404;
         }
 
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .back-btn,
+            .portions-control,
+            .action-buttons,
+            .header-actions {
+                display: none !important;
+            }
+
+            .recipe-detail {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            .recipe-title {
+                font-size: 24pt;
+                margin-bottom: 10pt;
+            }
+
+            .recipe-meta {
+                border-bottom: 1pt solid #ccc;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+
+            .section-title {
+                font-size: 16pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+
+            .ingredient-item {
+                background: white;
+                border: 1pt solid #ddd;
+                padding: 8pt;
+                margin-bottom: 4pt;
+                page-break-inside: avoid;
+            }
+
+            .ingredient-item input[type="checkbox"] {
+                display: none;
+            }
+
+            .ingredient-item::before {
+                content: "☐ ";
+                margin-right: 5pt;
+            }
+
+            .step-item {
+                background: white;
+                border: 1pt solid #ddd;
+                padding: 10pt;
+                padding-left: 40pt;
+                margin-bottom: 8pt;
+                page-break-inside: avoid;
+            }
+
+            .step-item::before {
+                background: #333;
+                width: 24pt;
+                height: 24pt;
+                left: 10pt;
+                top: 10pt;
+            }
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -408,6 +485,7 @@
 
                 <div class="action-buttons">
                     <button class="btn btn-primary" id="start-cooking-btn">👨‍🍳 Koch-Modus starten</button>
+                    <button class="btn btn-secondary" id="print-btn">🖨️ Rezept drucken</button>
                 </div>
             </div>
         </div>
@@ -700,6 +778,11 @@
             switchView('detail');
         }
 
+        // Print recipe
+        function printRecipe() {
+            window.print();
+        }
+
         // Start cooking mode
         function startCooking() {
             const recipe = recipes[currentRecipeId];
@@ -809,27 +892,4 @@
         });
 
         document.getElementById('start-cooking-btn').addEventListener('click', startCooking);
-
-        document.getElementById('back-to-detail').addEventListener('click', () => {
-            showDetail(currentRecipeId);
-        });
-
-        document.getElementById('prev-step-btn').addEventListener('click', function() {
-            if (currentStep > 0) {
-                currentStep--;
-                updateCookingStep();
-            }
-        });
-
-        document.getElementById('next-step-btn').addEventListener('click', function() {
-            const recipe = recipes[currentRecipeId];
-            if (currentStep < recipe.steps.length - 1) {
-                currentStep++;
-                updateCookingStep();
-            } else {
-                showDetail(currentRecipeId);
-            }
-        });
-    </script>
-</body>
-</html>
+        
