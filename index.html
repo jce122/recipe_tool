@@ -893,3 +893,25 @@
 
         document.getElementById('start-cooking-btn').addEventListener('click', startCooking);
         
+        document.getElementById('print-btn').addEventListener('click', printRecipe);
+
+        document.getElementById('back-to-detail').addEventListener('click', () => {
+            showDetail(currentRecipeId);
+        });
+
+        document.getElementById('prev-step-btn').addEventListener('click', function() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateCookingStep();
+            }
+        });
+
+        document.getElementById('next-step-btn').addEventListener('click', function() {
+            const recipe = recipes[currentRecipeId];
+            if (currentStep < recipe.steps.length - 1) {
+                currentStep++;
+                updateCookingStep();
+            } else {
+                showDetail(currentRecipeId);
+            }
+        });
