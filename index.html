@@ -1,4 +1,437 @@
-<script>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Rezepte</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: #007aff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e5e5ea;
+            color: #1d1d1f;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .recipe-card-mini {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .recipe-card-mini:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .recipe-card-mini h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .recipe-card-mini .meta {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .view-detail, .view-library, .view-cooking {
+            display: none;
+        }
+
+        .view-detail.active, .view-library.active, .view-cooking.active {
+            display: block;
+        }
+
+        .recipe-detail {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background: #e5e5ea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .recipe-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .recipe-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f5f5f7;
+        }
+
+        .portions-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .portion-btn {
+            background: #007aff;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .portion-display {
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 25px 0 15px 0;
+        }
+
+        .ingredients-list, .steps-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ingredient-item {
+            padding: 12px;
+            background: #f5f5f7;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ingredient-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .ingredient-item.checked {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .step-item {
+            padding: 15px;
+            background: #f5f5f7;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            counter-increment: step-counter;
+            position: relative;
+            padding-left: 50px;
+        }
+
+        .step-item::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            background: #007aff;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .steps-list {
+            counter-reset: step-counter;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .cooking-mode {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 70vh;
+        }
+
+        .cooking-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .step-counter-display {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .cooking-step {
+            background: #f5f5f7;
+            padding: 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            line-height: 1.8;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .cooking-controls {
+            display: flex;
+            gap: 10px;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cooking-btn {
+            flex: 1;
+            padding: 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .cooking-btn.prev {
+            background: #e5e5ea;
+            color: #1d1d1f;
+        }
+
+        .cooking-btn.next {
+            background: #007aff;
+            color: white;
+        }
+
+        .cooking-btn.finish {
+            background: #34c759;
+            color: white;
+        }
+
+        .cooking-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .error-state {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                padding-bottom: 100px;
+            }
+
+            .recipe-title {
+                font-size: 24px;
+            }
+
+            .cooking-step {
+                font-size: 16px;
+                padding: 20px;
+                min-height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Library View -->
+        <div class="view-library active">
+            <div class="header">
+                <h1>📚 Meine Rezepte</h1>
+                <p style="color: #666; font-size: 14px; margin-top: 5px;" id="recipe-count">Keine Rezepte geladen</p>
+                <div class="header-actions">
+                    <input type="file" id="file-input" accept=".md,.markdown,.txt" multiple style="display: none;">
+                    <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;">
+                    <button class="btn btn-primary" id="upload-btn">📁 Dateien hochladen</button>
+                    <button class="btn btn-secondary" id="upload-folder-btn">📂 Ordner hochladen</button>
+                </div>
+            </div>
+
+            <div id="error-message" class="error-state" style="display: none;"></div>
+            <div id="recipe-grid" class="recipe-grid"></div>
+
+            <div id="loading-state" class="loading-state" style="display: none;">
+                <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
+                <p>Lade Rezepte...</p>
+            </div>
+
+            <div id="empty-state" class="empty-state">
+                <div class="empty-state-icon">📖</div>
+                <h2>Keine Rezepte geladen</h2>
+                <p style="margin-top: 10px;">Lade Markdown-Dateien (.md, .txt) hoch</p>
+                <button class="btn btn-primary" style="margin-top: 20px;" onclick="document.getElementById('upload-btn').click()">📁 Rezepte hochladen</button>
+            </div>
+        </div>
+
+        <!-- Detail View -->
+        <div class="view-detail">
+            <button class="back-btn" id="back-to-library">← Zurück zur Bibliothek</button>
+            <div class="recipe-detail">
+                <h1 class="recipe-title" id="detail-title"></h1>
+                <div class="recipe-meta" id="detail-meta"></div>
+
+                <div class="portions-control">
+                    <button class="portion-btn" id="decrease-portions">−</button>
+                    <span class="portion-display" id="portions-display"></span>
+                    <button class="portion-btn" id="increase-portions">+</button>
+                </div>
+
+                <h2 class="section-title">Zutaten</h2>
+                <ul class="ingredients-list" id="detail-ingredients"></ul>
+
+                <h2 class="section-title">Zubereitung</h2>
+                <ul class="steps-list" id="detail-steps"></ul>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="start-cooking-btn">👨‍🍳 Koch-Modus starten</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cooking Mode View -->
+        <div class="view-cooking">
+            <button class="back-btn" id="back-to-detail">← Zurück zum Rezept</button>
+            <div class="cooking-mode">
+                <div class="cooking-header">
+                    <h2 id="cooking-title"></h2>
+                    <div class="step-counter-display" id="step-counter"></div>
+                </div>
+
+                <div class="cooking-step" id="cooking-step"></div>
+            </div>
+
+            <div class="cooking-controls">
+                <button class="cooking-btn prev" id="prev-step-btn">← Zurück</button>
+                <button class="cooking-btn next" id="next-step-btn">Weiter →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         let recipes = {};
         let currentRecipeId = null;
         let currentStep = 0;
@@ -22,7 +455,6 @@
                 let loadedCount = 0;
 
                 for (const file of files) {
-                    // Nur .md, .markdown und .txt Dateien verarbeiten
                     if (file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.txt')) {
                         try {
                             const markdown = await file.text();
@@ -70,3 +502,334 @@
                 loadRecipesFromFiles(files);
             }
         }
+
+        // Parse markdown
+        function parseMarkdown(markdown) {
+            const lines = markdown.split('\n');
+            let recipe = {
+                title: '',
+                serves: 6,
+                prepTime: '',
+                cookTime: '',
+                ingredients: [],
+                steps: []
+            };
+            
+            let currentSection = '';
+
+            lines.forEach(line => {
+                line = line.trim();
+                
+                if (line.startsWith('## ')) {
+                    recipe.title = line.replace('## ', '').trim();
+                } else if (line.startsWith('**Serves:**')) {
+                    const match = line.match(/\d+/);
+                    if (match) recipe.serves = parseInt(match[0]);
+                } else if (line.startsWith('**Prep Time:**')) {
+                    recipe.prepTime = line.replace('**Prep Time:**', '').trim();
+                } else if (line.startsWith('**Cook Time:**')) {
+                    recipe.cookTime = line.replace('**Cook Time:**', '').trim();
+                } else if (line.startsWith('**Ingredients:**')) {
+                    currentSection = 'ingredients';
+                } else if (line.startsWith('**Steps:**')) {
+                    currentSection = 'steps';
+                } else if (currentSection === 'ingredients' && line.startsWith('- ')) {
+                    recipe.ingredients.push(line.replace('- ', '').trim());
+                } else if (currentSection === 'steps' && /^\d+\./.test(line)) {
+                    recipe.steps.push(line.replace(/^\d+\.\s*/, '').trim());
+                }
+            });
+
+            return recipe;
+        }
+
+        // Scale ingredient
+        function scaleIngredient(ingredient, originalServes, newServes) {
+            const ratio = newServes / originalServes;
+            
+            const unicodeFractions = {
+                '¼': 0.25, '½': 0.5, '¾': 0.75,
+                '⅐': 0.143, '⅑': 0.111, '⅒': 0.1,
+                '⅓': 0.333, '⅔': 0.667,
+                '⅕': 0.2, '⅖': 0.4, '⅗': 0.6, '⅘': 0.8,
+                '⅙': 0.167, '⅚': 0.833,
+                '⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875
+            };
+            
+            const decimalToUnicode = {
+                0.25: '¼', 0.5: '½', 0.75: '¾',
+                0.333: '⅓', 0.667: '⅔',
+                0.2: '⅕', 0.4: '⅖', 0.6: '⅗', 0.8: '⅘',
+                0.125: '⅛', 0.375: '⅜', 0.625: '⅝', 0.875: '⅞'
+            };
+            
+            let result = ingredient;
+            
+            result = result.replace(/(\d+)?\s*([¼½¾⅐⅑⅒⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])/g, (match, whole, fraction) => {
+                const wholeNum = whole ? parseInt(whole) : 0;
+                const fracValue = unicodeFractions[fraction] || 0;
+                const totalValue = wholeNum + fracValue;
+                const scaled = totalValue * ratio;
+                
+                const wholePart = Math.floor(scaled);
+                const fracPart = scaled - wholePart;
+                
+                for (const [decimal, unicode] of Object.entries(decimalToUnicode)) {
+                    if (Math.abs(fracPart - parseFloat(decimal)) < 0.01) {
+                        return wholePart > 0 ? `${wholePart}${unicode}` : unicode;
+                    }
+                }
+                
+                return scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1).replace('.', ',');
+            });
+            
+            result = result.replace(/(\d+)\/(\d+)/g, (match, numerator, denominator) => {
+                const value = parseInt(numerator) / parseInt(denominator);
+                const scaled = value * ratio;
+                
+                for (const [decimal, unicode] of Object.entries(decimalToUnicode)) {
+                    if (Math.abs(scaled - parseFloat(decimal)) < 0.01) {
+                        return unicode;
+                    }
+                }
+                
+                if (Math.abs(scaled - 1) < 0.01) return '1';
+                
+                return scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1).replace('.', ',');
+            });
+            
+            result = result.replace(/(\d+[.,]\d+)(?!\d)/g, (match) => {
+                const num = parseFloat(match.replace(',', '.'));
+                const scaled = num * ratio;
+                return scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1).replace('.', ',');
+            });
+            
+            result = result.replace(/(?<![\d.,])(\d+)(?![\d.,\/])/g, (match) => {
+                const num = parseInt(match);
+                const scaled = num * ratio;
+                return scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1).replace('.', ',');
+            });
+            
+            return result;
+        }
+
+        // Render library
+        function renderLibrary() {
+            const grid = document.getElementById('recipe-grid');
+            const emptyState = document.getElementById('empty-state');
+            const count = Object.keys(recipes).length;
+            
+            document.getElementById('recipe-count').textContent = 
+                count === 0 ? 'Keine Rezepte geladen' : 
+                count === 1 ? '1 Rezept' : `${count} Rezepte`;
+
+            if (count === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            grid.innerHTML = '';
+
+            Object.entries(recipes).forEach(([id, recipe]) => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card-mini';
+                card.innerHTML = `
+                    <h3>${recipe.title}</h3>
+                    <div class="meta">
+                        ${recipe.serves ? `<span>👥 ${recipe.serves}</span>` : ''}
+                        ${recipe.prepTime ? `<span>⏱️ ${recipe.prepTime}</span>` : ''}
+                        ${recipe.cookTime ? `<span>🔥 ${recipe.cookTime}</span>` : ''}
+                    </div>
+                `;
+                card.onclick = () => showDetail(id);
+                grid.appendChild(card);
+            });
+        }
+
+        // Show detail view
+        function showDetail(id) {
+            currentRecipeId = id;
+            const recipe = recipes[id];
+            currentPortions = recipe.serves;
+            originalPortions = recipe.serves;
+
+            document.getElementById('detail-title').textContent = recipe.title;
+            
+            const meta = [];
+            if (recipe.serves) meta.push(`<span>👥 ${recipe.serves} Portionen</span>`);
+            if (recipe.prepTime) meta.push(`<span>⏱️ ${recipe.prepTime}</span>`);
+            if (recipe.cookTime) meta.push(`<span>🔥 ${recipe.cookTime}</span>`);
+            document.getElementById('detail-meta').innerHTML = meta.join('');
+
+            document.getElementById('portions-display').textContent = `${currentPortions} Portionen`;
+
+            const ingredientsList = document.getElementById('detail-ingredients');
+            ingredientsList.innerHTML = '';
+            recipe.ingredients.forEach((ing, index) => {
+                const li = document.createElement('li');
+                li.className = 'ingredient-item';
+                const scaledIng = scaleIngredient(ing, originalPortions, currentPortions);
+                li.innerHTML = `
+                    <input type="checkbox" id="ing-${index}">
+                    <label for="ing-${index}" style="flex: 1; cursor: pointer;">${scaledIng}</label>
+                `;
+                
+                const checkbox = li.querySelector('input');
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        li.classList.add('checked');
+                    } else {
+                        li.classList.remove('checked');
+                    }
+                });
+                
+                ingredientsList.appendChild(li);
+            });
+
+            const stepsList = document.getElementById('detail-steps');
+            stepsList.innerHTML = '';
+            recipe.steps.forEach((step) => {
+                const li = document.createElement('li');
+                li.className = 'step-item';
+                li.textContent = step;
+                stepsList.appendChild(li);
+            });
+
+            switchView('detail');
+        }
+
+        // Start cooking mode
+        function startCooking() {
+            const recipe = recipes[currentRecipeId];
+            currentStep = 0;
+            
+            document.getElementById('cooking-title').textContent = recipe.title;
+            updateCookingStep();
+            switchView('cooking');
+        }
+
+        // Update cooking step
+        function updateCookingStep() {
+            const recipe = recipes[currentRecipeId];
+            const totalSteps = recipe.steps.length;
+            
+            document.getElementById('step-counter').textContent = 
+                `Schritt ${currentStep + 1} von ${totalSteps}`;
+            
+            document.getElementById('cooking-step').textContent = recipe.steps[currentStep];
+
+            document.getElementById('prev-step-btn').disabled = currentStep === 0;
+            
+            const nextBtn = document.getElementById('next-step-btn');
+            if (currentStep === totalSteps - 1) {
+                nextBtn.textContent = '✓ Fertig';
+                nextBtn.className = 'cooking-btn finish';
+            } else {
+                nextBtn.textContent = 'Weiter →';
+                nextBtn.className = 'cooking-btn next';
+            }
+        }
+
+        // Switch views
+        function switchView(view) {
+            document.querySelectorAll('.view-library, .view-detail, .view-cooking').forEach(v => {
+                v.classList.remove('active');
+            });
+            document.querySelector(`.view-${view}`).classList.add('active');
+        }
+
+        // Update portions
+        function updatePortions() {
+            const recipe = recipes[currentRecipeId];
+            
+            document.getElementById('portions-display').textContent = `${currentPortions} Portionen`;
+            
+            const ingredientsList = document.getElementById('detail-ingredients');
+            const checkboxStates = [];
+            
+            ingredientsList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                checkboxStates.push(cb.checked);
+            });
+            
+            ingredientsList.innerHTML = '';
+            recipe.ingredients.forEach((ing, index) => {
+                const li = document.createElement('li');
+                li.className = 'ingredient-item';
+                const scaledIng = scaleIngredient(ing, originalPortions, currentPortions);
+                li.innerHTML = `
+                    <input type="checkbox" id="ing-${index}" ${checkboxStates[index] ? 'checked' : ''}>
+                    <label for="ing-${index}" style="flex: 1; cursor: pointer;">${scaledIng}</label>
+                `;
+                
+                if (checkboxStates[index]) {
+                    li.classList.add('checked');
+                }
+                
+                const checkbox = li.querySelector('input');
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        li.classList.add('checked');
+                    } else {
+                        li.classList.remove('checked');
+                    }
+                });
+                
+                ingredientsList.appendChild(li);
+            });
+        }
+
+        // Event listeners
+        document.getElementById('upload-btn').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('upload-folder-btn').addEventListener('click', () => {
+            document.getElementById('folder-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', handleFileUpload);
+        document.getElementById('folder-input').addEventListener('change', handleFolderUpload);
+
+        document.getElementById('back-to-library').addEventListener('click', () => {
+            switchView('library');
+        });
+
+        document.getElementById('decrease-portions').addEventListener('click', function() {
+            if (currentPortions > 1) {
+                currentPortions--;
+                updatePortions();
+            }
+        });
+
+        document.getElementById('increase-portions').addEventListener('click', function() {
+            currentPortions++;
+            updatePortions();
+        });
+
+        document.getElementById('start-cooking-btn').addEventListener('click', startCooking);
+
+        document.getElementById('back-to-detail').addEventListener('click', () => {
+            showDetail(currentRecipeId);
+        });
+
+        document.getElementById('prev-step-btn').addEventListener('click', function() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateCookingStep();
+            }
+        });
+
+        document.getElementById('next-step-btn').addEventListener('click', function() {
+            const recipe = recipes[currentRecipeId];
+            if (currentStep < recipe.steps.length - 1) {
+                currentStep++;
+                updateCookingStep();
+            } else {
+                showDetail(currentRecipeId);
+            }
+        });
+    </script>
+</body>
+</html>
