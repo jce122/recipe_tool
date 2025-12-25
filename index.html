@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -118,6 +119,21 @@
             border-radius: 12px;
             font-size: 12px;
             font-weight: 500;
+        }
+
+        .tag.filter-tag {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s, box-shadow 0.2s;
+        }
+
+        .tag.filter-tag.active {
+            opacity: 1;
+            box-shadow: 0 0 0 2px #005ecb;
+        }
+
+        .tag.filter-tag:hover {
+            opacity: 0.8;
         }
 
         .view-detail, .view-library, .view-cooking {
@@ -536,6 +552,12 @@
                 </div>
             </div>
 
+            <div id="filter-section" class="header" style="display: none;">
+                <h3 style="font-size: 18px; margin-bottom: 10px;">🏷️ Filter nach Tags</h3>
+                <div id="filter-tags" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                <button class="btn btn-secondary" id="clear-filter-btn" style="margin-top: 10px; width: auto;">Filter zurücksetzen</button>
+            </div>
+
             <div id="error-message" class="error-state" style="display: none;"></div>
             <div id="recipe-grid" class="recipe-grid"></div>
 
@@ -617,6 +639,7 @@
         let currentStep = 0;
         let currentPortions = 6;
         let originalPortions = 6;
+        let activeFilterTags = new Set();
 
         // Load recipes from uploaded files
         async function loadRecipesFromFiles(files) {
@@ -655,6 +678,7 @@
                     errorMessage.style.display = 'block';
                 }
                 
+                activeFilterTags.clear();
                 renderLibrary();
                 
             } catch (error) {
@@ -732,6 +756,48 @@
             return recipe;
         }
 
+        // Get all unique tags
+        function getAllTags() {
+            const tagsSet = new Set();
+            Object.values(recipes).forEach(recipe => {
+                if (recipe.tags) {
+                    recipe.tags.forEach(tag => tagsSet.add(tag));
+                }
+            });
+            return Array.from(tagsSet).sort();
+        }
+
+        // Render filter tags
+        function renderFilterTags() {
+            const filterSection = document.getElementById('filter-section');
+            const filterTagsContainer = document.getElementById('filter-tags');
+            const allTags = getAllTags();
+            
+            if (allTags.length === 0) {
+                filterSection.style.display = 'none';
+                return;
+            }
+            
+            filterSection.style.display = 'block';
+            filterTagsContainer.innerHTML = allTags.map(tag => 
+                `<span class="tag filter-tag ${activeFilterTags.has(tag) ? 'active' : ''}" data-tag="${tag}">${tag}</span>`
+            ).join('');
+            
+            // Add click handlers
+            filterTagsContainer.querySelectorAll('.filter-tag').forEach(tagEl => {
+                tagEl.addEventListener('click', () => {
+                    const tag = tagEl.dataset.tag;
+                    if (activeFilterTags.has(tag)) {
+                        activeFilterTags.delete(tag);
+                    } else {
+                        activeFilterTags.add(tag);
+                    }
+                    renderFilterTags();
+                    renderLibrary();
+                });
+            });
+        }
+
         // Scale ingredient
         function scaleIngredient(ingredient, originalServes, newServes) {
             const ratio = newServes / originalServes;
@@ -802,46 +868,63 @@
             return result;
         }
 
-        // Render library
-        function renderLibrary() {
-            const grid = document.getElementById('recipe-grid');
-            const emptyState = document.getElementById('empty-state');
-            const count = Object.keys(recipes).length;
-            
-            document.getElementById('recipe-count').textContent = 
-                count === 0 ? 'Keine Rezepte geladen' : 
-                count === 1 ? '1 Rezept' : `${count} Rezepte`;
+// Render library
+function renderLibrary() {
+    const grid = document.getElementById('recipe-grid');
+    const emptyState = document.getElementById('empty-state');
+    const count = Object.keys(recipes).length;
+    
+    // Filter recipes by active tags
+    let filteredRecipes = Object.entries(recipes);
+    if (activeFilterTags.size > 0) {
+        filteredRecipes = filteredRecipes.filter(([id, recipe]) => {
+            if (!recipe.tags || recipe.tags.length === 0) return false;
+            return Array.from(activeFilterTags).some(tag => recipe.tags.includes(tag));
+        });
+    }
+    
+    document.getElementById('recipe-count').textContent = 
+        count === 0 ? 'Keine Rezepte geladen' : 
+        count === 1 ? '1 Rezept' : `${count} Rezepte`;
 
-            if (count === 0) {
-                grid.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
+    renderFilterTags();
 
-            emptyState.style.display = 'none';
-            grid.innerHTML = '';
+    if (count === 0) {
+        grid.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
 
-            Object.entries(recipes).forEach(([id, recipe]) => {
-                const card = document.createElement('div');
-                card.className = 'recipe-card-mini';
-                
-                const tagsHtml = recipe.tags && recipe.tags.length > 0 
-                    ? `<div class="recipe-tags">${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
-                    : '';
-                
-                card.innerHTML = `
-                    <h3>${recipe.title}</h3>
-                    <div class="meta">
-                        ${recipe.serves ? `<span>👥 ${recipe.serves}</span>` : ''}
-                        ${recipe.prepTime ? `<span>⏱️ ${recipe.prepTime}</span>` : ''}
-                        ${recipe.cookTime ? `<span>🔥 ${recipe.cookTime}</span>` : ''}
-                    </div>
-                    ${tagsHtml}
-                `;
-                card.onclick = () => showDetail(id);
-                grid.appendChild(card);
-            });
-        }
+    emptyState.style.display = 'none';
+    
+    if (filteredRecipes.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">Keine Rezepte mit den ausgewählten Tags gefunden</div>';
+        return;
+    }
+    
+    grid.innerHTML = '';
+
+    filteredRecipes.forEach(([id, recipe]) => {
+        const card = document.createElement('div');
+        card.className = 'recipe-card-mini';
+        
+        const tagsHtml = recipe.tags && recipe.tags.length > 0 
+            ? `<div class="recipe-tags">${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+            : '';
+        
+        card.innerHTML = `
+            <h3>${recipe.title}</h3>
+            <div class="meta">
+                ${recipe.serves ? `<span>👥 ${recipe.serves}</span>` : ''}
+                ${recipe.prepTime ? `<span>⏱️ ${recipe.prepTime}</span>` : ''}
+                ${recipe.cookTime ? `<span>🔥 ${recipe.cookTime}</span>` : ''}
+            </div>
+            ${tagsHtml}
+        `;
+        card.onclick = () => showDetail(id);
+        grid.appendChild(card);
+    });
+}
 
         // Show detail view
         function showDetail(id) {
