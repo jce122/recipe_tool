@@ -101,6 +101,23 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .recipe-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: #007aff;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .view-detail, .view-library, .view-cooking {
@@ -140,9 +157,74 @@
             flex-wrap: wrap;
             color: #666;
             font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .recipe-tags-detail {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
             padding-bottom: 20px;
             border-bottom: 2px solid #f5f5f7;
+        }
+
+        .notes-section {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .notes-section h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #856404;
+        }
+
+        .notes-section p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-top: 8px;
+        }
+
+        .notes-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .notes-actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-save {
+            background: #34c759;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #e5e5ea;
+            color: #1d1d1f;
         }
 
         .portions-control {
@@ -352,7 +434,8 @@
 
             .back-btn,
             .portions-control,
-            .action-buttons {
+            .action-buttons,
+            .notes-actions {
                 display: none !important;
             }
 
@@ -366,10 +449,16 @@
                 margin-bottom: 10pt;
             }
 
-            .recipe-meta {
+            .recipe-meta, .recipe-tags-detail {
                 border-bottom: 1pt solid #ccc;
                 padding-bottom: 10pt;
                 margin-bottom: 15pt;
+            }
+
+            .notes-section {
+                background: #f9f9f9;
+                border-left: 2pt solid #999;
+                page-break-inside: avoid;
             }
 
             .section-title {
@@ -469,6 +558,20 @@
             <div class="recipe-detail">
                 <h1 class="recipe-title" id="detail-title"></h1>
                 <div class="recipe-meta" id="detail-meta"></div>
+                <div class="recipe-tags-detail" id="detail-tags"></div>
+
+                <div class="notes-section" id="notes-section">
+                    <h3>📝 Notizen</h3>
+                    <div id="notes-display"></div>
+                    <div id="notes-edit" style="display: none;">
+                        <textarea id="notes-textarea"></textarea>
+                        <div class="notes-actions">
+                            <button class="btn-save" id="save-notes-btn">Speichern</button>
+                            <button class="btn-cancel" id="cancel-notes-btn">Abbrechen</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="edit-notes-btn" style="margin-top: 10px; width: auto;">Notizen bearbeiten</button>
+                </div>
 
                 <div class="portions-control">
                     <button class="portion-btn" id="decrease-portions">−</button>
@@ -588,6 +691,8 @@
                 serves: 6,
                 prepTime: '',
                 cookTime: '',
+                tags: [],
+                notes: '',
                 ingredients: [],
                 steps: []
             };
@@ -606,10 +711,17 @@
                     recipe.prepTime = line.replace('**Prep Time:**', '').trim();
                 } else if (line.startsWith('**Cook Time:**')) {
                     recipe.cookTime = line.replace('**Cook Time:**', '').trim();
+                } else if (line.startsWith('**Tags:**')) {
+                    const tagString = line.replace('**Tags:**', '').trim();
+                    recipe.tags = tagString.split(',').map(t => t.trim()).filter(t => t);
+                } else if (line.startsWith('**Notes:**')) {
+                    currentSection = 'notes';
                 } else if (line.startsWith('**Ingredients:**')) {
                     currentSection = 'ingredients';
                 } else if (line.startsWith('**Steps:**')) {
                     currentSection = 'steps';
+                } else if (currentSection === 'notes' && line && !line.startsWith('**')) {
+                    recipe.notes += (recipe.notes ? '\n' : '') + line;
                 } else if (currentSection === 'ingredients' && line.startsWith('- ')) {
                     recipe.ingredients.push(line.replace('- ', '').trim());
                 } else if (currentSection === 'steps' && /^\d+\./.test(line)) {
@@ -712,6 +824,11 @@
             Object.entries(recipes).forEach(([id, recipe]) => {
                 const card = document.createElement('div');
                 card.className = 'recipe-card-mini';
+                
+                const tagsHtml = recipe.tags && recipe.tags.length > 0 
+                    ? `<div class="recipe-tags">${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+                    : '';
+                
                 card.innerHTML = `
                     <h3>${recipe.title}</h3>
                     <div class="meta">
@@ -719,6 +836,7 @@
                         ${recipe.prepTime ? `<span>⏱️ ${recipe.prepTime}</span>` : ''}
                         ${recipe.cookTime ? `<span>🔥 ${recipe.cookTime}</span>` : ''}
                     </div>
+                    ${tagsHtml}
                 `;
                 card.onclick = () => showDetail(id);
                 grid.appendChild(card);
@@ -739,6 +857,18 @@
             if (recipe.prepTime) meta.push(`<span>⏱️ ${recipe.prepTime}</span>`);
             if (recipe.cookTime) meta.push(`<span>🔥 ${recipe.cookTime}</span>`);
             document.getElementById('detail-meta').innerHTML = meta.join('');
+
+            // Display tags
+            const tagsContainer = document.getElementById('detail-tags');
+            if (recipe.tags && recipe.tags.length > 0) {
+                tagsContainer.innerHTML = recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                tagsContainer.style.display = 'flex';
+            } else {
+                tagsContainer.style.display = 'none';
+            }
+
+            // Display notes
+            updateNotesDisplay();
 
             document.getElementById('portions-display').textContent = `${currentPortions} Portionen`;
 
@@ -775,6 +905,62 @@
             });
 
             switchView('detail');
+        }
+
+        // Update notes display
+        function updateNotesDisplay() {
+            const recipe = recipes[currentRecipeId];
+            const notesDisplay = document.getElementById('notes-display');
+            
+            if (recipe.notes && recipe.notes.trim()) {
+                notesDisplay.innerHTML = `<p>${recipe.notes}</p>`;
+            } else {
+                notesDisplay.innerHTML = `<p style="color: #999; font-style: italic;">Noch keine Notizen vorhanden</p>`;
+            }
+        }
+
+        // Edit notes
+        function editNotes() {
+            const recipe = recipes[currentRecipeId];
+            const notesDisplay = document.getElementById('notes-display');
+            const notesEdit = document.getElementById('notes-edit');
+            const notesTextarea = document.getElementById('notes-textarea');
+            const editBtn = document.getElementById('edit-notes-btn');
+            
+            notesDisplay.style.display = 'none';
+            editBtn.style.display = 'none';
+            notesEdit.style.display = 'block';
+            notesTextarea.value = recipe.notes || '';
+            notesTextarea.focus();
+        }
+
+        // Save notes
+        function saveNotes() {
+            const recipe = recipes[currentRecipeId];
+            const notesTextarea = document.getElementById('notes-textarea');
+            
+            recipe.notes = notesTextarea.value;
+            
+            const notesDisplay = document.getElementById('notes-display');
+            const notesEdit = document.getElementById('notes-edit');
+            const editBtn = document.getElementById('edit-notes-btn');
+            
+            notesDisplay.style.display = 'block';
+            editBtn.style.display = 'block';
+            notesEdit.style.display = 'none';
+            
+            updateNotesDisplay();
+        }
+
+        // Cancel notes edit
+        function cancelNotesEdit() {
+            const notesDisplay = document.getElementById('notes-display');
+            const notesEdit = document.getElementById('notes-edit');
+            const editBtn = document.getElementById('edit-notes-btn');
+            
+            notesDisplay.style.display = 'block';
+            editBtn.style.display = 'block';
+            notesEdit.style.display = 'none';
         }
 
         // Start cooking mode
@@ -890,6 +1076,10 @@
         document.getElementById('print-btn').addEventListener('click', function() {
             window.print();
         });
+
+        document.getElementById('edit-notes-btn').addEventListener('click', editNotes);
+        document.getElementById('save-notes-btn').addEventListener('click', saveNotes);
+        document.getElementById('cancel-notes-btn').addEventListener('click', cancelNotesEdit);
 
         document.getElementById('back-to-detail').addEventListener('click', () => {
             showDetail(currentRecipeId);
