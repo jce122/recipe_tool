@@ -52,11 +52,6 @@
             cursor: pointer;
             font-weight: 500;
             flex: 1;
-            transition: opacity 0.2s;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
         }
 
         .btn-primary {
@@ -131,11 +126,6 @@
             cursor: pointer;
             margin-bottom: 20px;
             font-size: 14px;
-            transition: opacity 0.2s;
-        }
-        
-        .back-btn:hover {
-            opacity: 0.8;
         }
 
         .recipe-title {
@@ -362,8 +352,7 @@
 
             .back-btn,
             .portions-control,
-            .action-buttons,
-            .header-actions {
+            .action-buttons {
                 display: none !important;
             }
 
@@ -788,11 +777,6 @@
             switchView('detail');
         }
 
-        // Print recipe
-        function printRecipe() {
-            window.print();
-        }
-
         // Start cooking mode
         function startCooking() {
             const recipe = recipes[currentRecipeId];
@@ -902,8 +886,10 @@
         });
 
         document.getElementById('start-cooking-btn').addEventListener('click', startCooking);
-        
-        document.getElementById('print-btn').addEventListener('click', printRecipe);
+
+        document.getElementById('print-btn').addEventListener('click', function() {
+            window.print();
+        });
 
         document.getElementById('back-to-detail').addEventListener('click', () => {
             showDetail(currentRecipeId);
@@ -925,3 +911,6 @@
                 showDetail(currentRecipeId);
             }
         });
+    </script>
+</body>
+</html>
