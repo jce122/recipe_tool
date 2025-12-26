@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -183,14 +182,6 @@
             margin-bottom: 20px;
             padding-bottom: 20px;
             border-bottom: 2px solid #f5f5f7;
-        }
-
-        .recipe-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 20px;
         }
 
         .notes-section {
@@ -444,6 +435,7 @@
             color: #856404;
         }
 
+        /* Print Styles */
         @media print {
             body {
                 background: white;
@@ -546,12 +538,13 @@
 </head>
 <body>
     <div class="container">
+        <!-- Library View -->
         <div class="view-library active">
             <div class="header">
                 <h1>📚 Meine Rezepte</h1>
                 <p style="color: #666; font-size: 14px; margin-top: 5px;" id="recipe-count">Keine Rezepte geladen</p>
                 <div class="header-actions">
-                    <input type="file" id="file-input" accept=".md,.markdown,.txt,image/*" multiple style="display: none;">
+                    <input type="file" id="file-input" accept=".md,.markdown,.txt" multiple style="display: none;">
                     <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;">
                     <button class="btn btn-primary" id="upload-btn">📁 Dateien hochladen</button>
                     <button class="btn btn-secondary" id="upload-folder-btn">📂 Ordner hochladen</button>
@@ -580,6 +573,7 @@
             </div>
         </div>
 
+        <!-- Detail View -->
         <div class="view-detail">
             <button class="back-btn" id="back-to-library">← Zurück zur Bibliothek</button>
             <div class="recipe-detail">
@@ -619,6 +613,7 @@
             </div>
         </div>
 
+        <!-- Cooking Mode View -->
         <div class="view-cooking">
             <button class="back-btn" id="back-to-detail">← Zurück zum Rezept</button>
             <div class="cooking-mode">
@@ -644,8 +639,8 @@
         let currentPortions = 6;
         let originalPortions = 6;
         let activeFilterTags = new Set();
-        let recipeImages = {};
 
+        // Load recipes from uploaded files
         async function loadRecipesFromFiles(files) {
             const loadingState = document.getElementById('loading-state');
             const emptyState = document.getElementById('empty-state');
@@ -659,19 +654,7 @@
 
             try {
                 recipes = {};
-                recipeImages = {};
                 let loadedCount = 0;
-
-                for (const file of files) {
-                    if (file.type.startsWith('image/')) {
-                        try {
-                            const imageUrl = URL.createObjectURL(file);
-                            recipeImages[file.name] = imageUrl;
-                        } catch (err) {
-                            console.error(`Fehler beim Laden des Bildes ${file.name}:`, err);
-                        }
-                    }
-                }
 
                 for (const file of files) {
                     if (file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.txt')) {
@@ -707,6 +690,7 @@
             }
         }
 
+        // Handle file upload
         function handleFileUpload(event) {
             const files = Array.from(event.target.files);
             if (files.length > 0) {
@@ -714,6 +698,7 @@
             }
         }
 
+        // Handle folder upload
         function handleFolderUpload(event) {
             const files = Array.from(event.target.files);
             if (files.length > 0) {
@@ -721,6 +706,7 @@
             }
         }
 
+        // Parse markdown
         function parseMarkdown(markdown) {
             const lines = markdown.split('\n');
             let recipe = {
@@ -731,8 +717,7 @@
                 tags: [],
                 notes: '',
                 ingredients: [],
-                steps: [],
-                images: []
+                steps: []
             };
             
             let currentSection = '';
@@ -758,11 +743,6 @@
                     currentSection = 'ingredients';
                 } else if (line.startsWith('**Steps:**')) {
                     currentSection = 'steps';
-                } else if (line.match(/!\[.*?\]\((.*?)\)/)) {
-                    const match = line.match(/!\[.*?\]\((.*?)\)/);
-                    if (match && match[1]) {
-                        recipe.images.push(match[1]);
-                    }
                 } else if (currentSection === 'notes' && line && !line.startsWith('**')) {
                     recipe.notes += (recipe.notes ? '\n' : '') + line;
                 } else if (currentSection === 'ingredients' && line.startsWith('- ')) {
@@ -775,6 +755,7 @@
             return recipe;
         }
 
+        // Get all unique tags
         function getAllTags() {
             const tagsSet = new Set();
             Object.values(recipes).forEach(recipe => {
@@ -785,6 +766,7 @@
             return Array.from(tagsSet).sort();
         }
 
+        // Render filter tags
         function renderFilterTags() {
             const filterSection = document.getElementById('filter-section');
             const filterTagsContainer = document.getElementById('filter-tags');
@@ -800,6 +782,7 @@
                 `<span class="tag filter-tag ${activeFilterTags.has(tag) ? 'active' : ''}" data-tag="${tag}">${tag}</span>`
             ).join('');
             
+            // Add click handlers
             filterTagsContainer.querySelectorAll('.filter-tag').forEach(tagEl => {
                 tagEl.addEventListener('click', () => {
                     const tag = tagEl.dataset.tag;
@@ -814,6 +797,7 @@
             });
         }
 
+        // Scale ingredient
         function scaleIngredient(ingredient, originalServes, newServes) {
             const ratio = newServes / originalServes;
             
@@ -883,81 +867,65 @@
             return result;
         }
 
-        function renderLibrary() {
-            const grid = document.getElementById('recipe-grid');
-            const emptyState = document.getElementById('empty-state');
-            const count = Object.keys(recipes).length;
-            
-            let filteredRecipes = Object.entries(recipes);
-            if (activeFilterTags.size > 0) {
-                
-<function_calls>
-<invoke name="artifacts">
-<parameter name="command">update</parameter>
-<parameter name="id">artifact_1</parameter>
-<parameter name="old_str">        function renderLibrary() {
-            const grid = document.getElementById('recipe-grid');
-            const emptyState = document.getElementById('empty-state');
-            const count = Object.keys(recipes).length;
-            
-            let filteredRecipes = Object.entries(recipes);
-            if (activeFilterTags.size > 0) {</parameter>
-<parameter name="new_str">        function renderLibrary() {
-            const grid = document.getElementById('recipe-grid');
-            const emptyState = document.getElementById('empty-state');
-            const count = Object.keys(recipes).length;
-            
-            let filteredRecipes = Object.entries(recipes);
-            if (activeFilterTags.size > 0) {
-                filteredRecipes = filteredRecipes.filter(([id, recipe]) => {
-                    if (!recipe.tags || recipe.tags.length === 0) return false;
-                    return Array.from(activeFilterTags).some(tag => recipe.tags.includes(tag));
-                });
-            }
-            
-            document.getElementById('recipe-count').textContent = 
-                count === 0 ? 'Keine Rezepte geladen' : 
-                count === 1 ? '1 Rezept' : `${count} Rezepte`;
+// Render library
+function renderLibrary() {
+    const grid = document.getElementById('recipe-grid');
+    const emptyState = document.getElementById('empty-state');
+    const count = Object.keys(recipes).length;
+    
+    // Filter recipes by active tags
+    let filteredRecipes = Object.entries(recipes);
+    if (activeFilterTags.size > 0) {
+        filteredRecipes = filteredRecipes.filter(([id, recipe]) => {
+            if (!recipe.tags || recipe.tags.length === 0) return false;
+            return Array.from(activeFilterTags).some(tag => recipe.tags.includes(tag));
+        });
+    }
+    
+    document.getElementById('recipe-count').textContent = 
+        count === 0 ? 'Keine Rezepte geladen' : 
+        count === 1 ? '1 Rezept' : `${count} Rezepte`;
 
-            renderFilterTags();
+    renderFilterTags();
 
-            if (count === 0) {
-                grid.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
+    if (count === 0) {
+        grid.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
 
-            emptyState.style.display = 'none';
-            
-            if (filteredRecipes.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">Keine Rezepte mit den ausgewählten Tags gefunden</div>';
-                return;
-            }
-            
-            grid.innerHTML = '';
+    emptyState.style.display = 'none';
+    
+    if (filteredRecipes.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">Keine Rezepte mit den ausgewählten Tags gefunden</div>';
+        return;
+    }
+    
+    grid.innerHTML = '';
 
-            filteredRecipes.forEach(([id, recipe]) => {
-                const card = document.createElement('div');
-                card.className = 'recipe-card-mini';
-                
-                const tagsHtml = recipe.tags && recipe.tags.length > 0 
-                    ? `<div class="recipe-tags">${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
-                    : '';
-                
-                card.innerHTML = `
-                    <h3>${recipe.title}</h3>
-                    <div class="meta">
-                        ${recipe.serves ? `<span>👥 ${recipe.serves}</span>` : ''}
-                        ${recipe.prepTime ? `<span>⏱️ ${recipe.prepTime}</span>` : ''}
-                        ${recipe.cookTime ? `<span>🔥 ${recipe.cookTime}</span>` : ''}
-                    </div>
-                    ${tagsHtml}
-                `;
-                card.onclick = () => showDetail(id);
-                grid.appendChild(card);
-            });
-        }
+    filteredRecipes.forEach(([id, recipe]) => {
+        const card = document.createElement('div');
+        card.className = 'recipe-card-mini';
+        
+        const tagsHtml = recipe.tags && recipe.tags.length > 0 
+            ? `<div class="recipe-tags">${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+            : '';
+        
+        card.innerHTML = `
+            <h3>${recipe.title}</h3>
+            <div class="meta">
+                ${recipe.serves ? `<span>👥 ${recipe.serves}</span>` : ''}
+                ${recipe.prepTime ? `<span>⏱️ ${recipe.prepTime}</span>` : ''}
+                ${recipe.cookTime ? `<span>🔥 ${recipe.cookTime}</span>` : ''}
+            </div>
+            ${tagsHtml}
+        `;
+        card.onclick = () => showDetail(id);
+        grid.appendChild(card);
+    });
+}
 
+        // Show detail view
         function showDetail(id) {
             currentRecipeId = id;
             const recipe = recipes[id];
@@ -972,6 +940,7 @@
             if (recipe.cookTime) meta.push(`<span>🔥 ${recipe.cookTime}</span>`);
             document.getElementById('detail-meta').innerHTML = meta.join('');
 
+            // Display tags
             const tagsContainer = document.getElementById('detail-tags');
             if (recipe.tags && recipe.tags.length > 0) {
                 tagsContainer.innerHTML = recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
@@ -980,24 +949,7 @@
                 tagsContainer.style.display = 'none';
             }
 
-            const detailContent = document.querySelector('.recipe-detail');
-            const existingImage = detailContent.querySelector('.recipe-image');
-            if (existingImage) {
-                existingImage.remove();
-            }
-
-            if (recipe.images && recipe.images.length > 0) {
-                const imageName = recipe.images[0];
-                if (recipeImages[imageName]) {
-                    const img = document.createElement('img');
-                    img.src = recipeImages[imageName];
-                    img.className = 'recipe-image';
-                    img.alt = recipe.title;
-                    const tagsElement = document.getElementById('detail-tags');
-                    tagsElement.parentNode.insertBefore(img, tagsElement.nextSibling);
-                }
-            }
-
+            // Display notes
             updateNotesDisplay();
 
             document.getElementById('portions-display').textContent = `${currentPortions} Portionen`;
@@ -1037,6 +989,7 @@
             switchView('detail');
         }
 
+        // Update notes display
         function updateNotesDisplay() {
             const recipe = recipes[currentRecipeId];
             const notesDisplay = document.getElementById('notes-display');
@@ -1048,6 +1001,7 @@
             }
         }
 
+        // Edit notes
         function editNotes() {
             const recipe = recipes[currentRecipeId];
             const notesDisplay = document.getElementById('notes-display');
@@ -1062,6 +1016,7 @@
             notesTextarea.focus();
         }
 
+        // Save notes
         function saveNotes() {
             const recipe = recipes[currentRecipeId];
             const notesTextarea = document.getElementById('notes-textarea');
@@ -1079,6 +1034,7 @@
             updateNotesDisplay();
         }
 
+        // Cancel notes edit
         function cancelNotesEdit() {
             const notesDisplay = document.getElementById('notes-display');
             const notesEdit = document.getElementById('notes-edit');
@@ -1089,6 +1045,7 @@
             notesEdit.style.display = 'none';
         }
 
+        // Start cooking mode
         function startCooking() {
             const recipe = recipes[currentRecipeId];
             currentStep = 0;
@@ -1098,6 +1055,7 @@
             switchView('cooking');
         }
 
+        // Update cooking step
         function updateCookingStep() {
             const recipe = recipes[currentRecipeId];
             const totalSteps = recipe.steps.length;
@@ -1119,6 +1077,7 @@
             }
         }
 
+        // Switch views
         function switchView(view) {
             document.querySelectorAll('.view-library, .view-detail, .view-cooking').forEach(v => {
                 v.classList.remove('active');
@@ -1126,6 +1085,7 @@
             document.querySelector(`.view-${view}`).classList.add('active');
         }
 
+        // Update portions
         function updatePortions() {
             const recipe = recipes[currentRecipeId];
             
@@ -1165,6 +1125,7 @@
             });
         }
 
+        // Event listeners
         document.getElementById('upload-btn').addEventListener('click', () => {
             document.getElementById('file-input').click();
         });
@@ -1222,12 +1183,6 @@
                 showDetail(currentRecipeId);
             }
         });
-
-        document.getElementById('clear-filter-btn').addEventListener('click', function() {
-            activeFilterTags.clear();
-            renderFilterTags();
-            renderLibrary();
-        });
     </script>
 </body>
-</html></parameter>
+</html>
